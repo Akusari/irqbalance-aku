@@ -69,6 +69,7 @@ extern int numa_avail;
 extern GList *cl_banned_irqs;
 
 extern int debug_mode;
+extern int verbose_mode;
 extern int journal_logging;
 extern int one_shot_mode;
 extern int need_rescan;
