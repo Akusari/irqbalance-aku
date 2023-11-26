@@ -49,6 +49,7 @@
 volatile int keep_going = 1;
 int one_shot_mode;
 int debug_mode;
+int verbose_mode;
 int foreground_mode;
 int numa_avail;
 int journal_logging = 0;
@@ -93,6 +94,7 @@ static void sleep_approx(int seconds)
 struct option lopts[] = {
 	{"oneshot", 0, NULL, 'o'},
 	{"debug", 0, NULL, 'd'},
+	{"verbose", 0, NULL, 'v'},
 	{"foreground", 0, NULL, 'f'},
 	{"powerthresh", 1, NULL, 'p'},
 	{"banirq", 1 , NULL, 'i'},
@@ -109,7 +111,7 @@ struct option lopts[] = {
 
 static void usage(void)
 {
-	log(TO_CONSOLE, LOG_INFO, "irqbalance [--oneshot | -o] [--debug | -d] [--foreground | -f] [--journal | -j]\n");
+	log(TO_CONSOLE, LOG_INFO, "irqbalance [--oneshot | -o] [--debug | -d] [--verbose | -v] [--foreground | -f] [--journal | -j]\n");
 	log(TO_CONSOLE, LOG_INFO, "	[--powerthresh= | -p <off> | <n>] [--banirq= | -i <n>] [--banmod= | -m <module>] [--policyscript= | -l <script>]\n");
 	log(TO_CONSOLE, LOG_INFO, "	[--pid= | -s <file>] [--deepestcache= | -c <n>] [--interval= | -t <n>] [--migrateval= | -e <n>]\n");
 }
@@ -127,7 +129,7 @@ static void parse_command_line(int argc, char **argv)
 	char *endptr;
 
 	while ((opt = getopt_long(argc, argv,
-		"odfjVi:p:s:c:l:m:t:e:",
+		"odvfjVi:p:s:c:l:m:t:e:",
 		lopts, &longind)) != -1) {
 
 		switch(opt) {
@@ -148,6 +150,10 @@ static void parse_command_line(int argc, char **argv)
 				break;
 			case 'd':
 				debug_mode=1;
+				foreground_mode=1;
+				break;
+			case 'v':
+				verbose_mode=1;
 				foreground_mode=1;
 				break;
 			case 'f':
@@ -211,6 +217,10 @@ static void parse_command_line(int argc, char **argv)
 {
 	if (argc>1 && strstr(argv[1],"--debug")) {
 		debug_mode=1;
+		foreground_mode=1;
+	}
+	if (argc>1 && strstr(argv[1],"--verbose")) {
+		verbode_mode=1;
 		foreground_mode=1;
 	}
 	if (argc>1 && strstr(argv[1],"--foreground"))
@@ -289,7 +299,8 @@ gboolean force_rescan(gpointer data __attribute__((unused)))
 
 gboolean scan(gpointer data __attribute__((unused)))
 {
-	log(TO_CONSOLE, LOG_INFO, "\n\n\n-----------------------------------------------------------------------------\n");
+	if (verbose_mode)
+		log(TO_CONSOLE, LOG_INFO, "\n\n\n-----------------------------------------------------------------------------\n");
 	clear_work_stats();
 	parse_proc_interrupts();
 
@@ -637,6 +648,11 @@ int main(int argc, char** argv)
 	if (getenv("IRQBALANCE_DEBUG")) {
 		debug_mode=1;
 		foreground_mode=1;
+	}
+
+	if (getenv("IRQBALANCE_VERBOSE")) {
+                verbose_mode=1;
+                foreground_mode=1;
 	}
 
 	/*

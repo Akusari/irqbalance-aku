@@ -106,7 +106,8 @@ static void move_candidate_irqs(struct irq_info *info, void *data)
 	} else
 		return;
 
-	log(TO_CONSOLE, LOG_INFO, "Selecting irq %d for rebalancing\n", info->irq);
+	if (verbose_mode)
+		log(TO_CONSOLE, LOG_INFO, "Selecting irq %d for rebalancing\n", info->irq);
 
 	migrate_irq(&info->assigned_obj->interrupts, &rebalance_irq_list, info);
 
